@@ -5,7 +5,7 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.get("/", (req, res) => {
-  res.send("Bot yazma özelliğiyle aktif!");
+  res.send("Bot aktif ve 5 saniyede bir yardırıyor!");
 });
 
 app.listen(PORT, () => {
@@ -13,18 +13,21 @@ app.listen(PORT, () => {
 });
 
 // --- AYARLAR ---
-const token = process.env.TOKEN;
-const message = process.env.MESSAGE;
+// Tokenini ve Mesajını buraya tırnak içine yazabilirsin
+const token = "SENİN_TOKENİN_BURAYA"; 
+const message = "#FERİŞTAHİNİZİ SİKECEĞİM TÜREMELER İNATLAŞİN XD.";
 const channels = [
   "1502028419091796150",
+  // Diğer kanal ID'lerini buraya ekleyebilirsin
 ];
 
 let currentIndex = 0;
 
 if (!token || !message) {
-    console.error("HATA: TOKEN veya MESSAGE eksik!");
+    console.error("HATA: TOKEN veya MESSAGE eksik! Lütfen kodun içindeki ayarları kontrol et.");
 } else {
-    // Döngüyü başlat
+    console.log(">> 5 Saniye Döngüsü Başlatıldı <<");
+    // Tam 5000ms (5 saniye) ayarlandı
     setInterval(handleCycle, 5000);
 }
 
@@ -37,14 +40,13 @@ async function handleCycle() {
       headers: { "Authorization": token }
     });
 
-    // 2. Kısa bir gecikme (Gerçekçi görünmesi için 1.5 saniye bekle ve mesajı at)
+    // 2. Çok kısa bir bekleyişten (500ms) sonra mesajı at ki 5 saniyelik periyot şaşmasın
     setTimeout(() => {
       sendActualMessage(currentChannelId);
-    }, 1500);
+    }, 500);
 
   } catch (err) {
-    console.error(`❌ Typing hatası (${currentChannelId}):`, err.response?.status);
-    // Hata olsa bile sırayı kaydır ki takılmasın
+    console.error(`❌ Typing hatası (${currentChannelId}):`, err.response?.status || "Bağlantı Yok");
     currentIndex = (currentIndex + 1) % channels.length;
   }
 }
@@ -55,11 +57,11 @@ function sendActualMessage(channelId) {
   }, {
     headers: {
       "Authorization": token,
-      "Content-Type": "application/json"
+      "Content-Type": "application/json",
+      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36"
     }
   }).then(() => {
-    console.log(`✅ Mesaj Gönderildi: ${channelId}`);
-    // Mesaj başarılıysa bir sonraki kanala geç
+    console.log(`✅ [${new Date().toLocaleTimeString()}] Mesaj Gidildi: ${channelId}`);
     currentIndex = (currentIndex + 1) % channels.length;
   }).catch((err) => {
     console.error(`❌ Mesaj Hatası (${channelId}):`, err.response?.status);
